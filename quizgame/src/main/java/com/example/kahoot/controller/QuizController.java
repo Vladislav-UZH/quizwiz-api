@@ -1,6 +1,6 @@
 package com.example.kahoot.controller;
 
-import com.example.kahoot.model.Quiz;
+import com.example.kahoot.dto.QuizDTO;
 import com.example.kahoot.service.QuizService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 // QuizController.java
 @RestController
@@ -18,7 +19,10 @@ public class QuizController {
     private QuizService quizService;
 
     @GetMapping
-    public ResponseEntity<List<Quiz>> getAllQuizzes() {
-        return ResponseEntity.ok(quizService.getAllQuizzes());
+    public ResponseEntity<List<QuizDTO>> getAllQuizzes() {
+        List<QuizDTO> quizzes = quizService.getAllQuizzes().stream()
+                .map(quizService::mapToDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(quizzes);
     }
 }
