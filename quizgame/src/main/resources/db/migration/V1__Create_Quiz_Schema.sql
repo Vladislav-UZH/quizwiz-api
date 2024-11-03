@@ -1,0 +1,24 @@
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(100) NOT NULL,
+    role VARCHAR(20) NOT NULL
+);
+
+CREATE TABLE quizzes (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE questions (
+    id SERIAL PRIMARY KEY,
+    text VARCHAR(255) NOT NULL,
+    quiz_id BIGINT REFERENCES quizzes(id) ON DELETE CASCADE
+);
+
+CREATE TABLE answers (
+    id SERIAL PRIMARY KEY,
+    text VARCHAR(255) NOT NULL,
+    is_correct BOOLEAN NOT NULL,
+    question_id BIGINT REFERENCES questions(id) ON DELETE CASCADE
+);

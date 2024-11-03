@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: 'postgres:latest'
+    environment:
+      - POSTGRES_DB=mydatabase
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=secret
+    ports:
+      - '5432:5432'
+    networks:
+      - quizgame-network
+
+  app:
+    image: 'your-spring-boot-app-image'  # Укажите название образа Spring Boot приложения
+    environment:
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/mydatabase
+      - DATABASE_USERNAME=myuser
+      - DATABASE_PASSWORD=secret
+    depends_on:
+      - postgres
+    networks:
+      - quizgame-network
+
+networks:
+  quizgame-network:
+    driver: bridge
