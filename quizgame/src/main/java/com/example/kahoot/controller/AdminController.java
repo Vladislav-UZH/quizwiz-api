@@ -15,27 +15,27 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/admin")
 public class AdminController {
+
     @Autowired
     private QuizService quizService;
 
     @Autowired
-    private UserService userService; // Добавлено поле UserService
-
+    private UserService userService;
 
     // Проверка роли администратора
     private void checkAdminAccess(User user) {
-        if (user.getRole() != Role.ADMIN) {
+        if (user == null || user.getRole() != Role.ADMIN) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
         }
     }
 
     @PostMapping("/create-quiz")
     public ResponseEntity<Quiz> createQuiz(@RequestBody Quiz quiz, @RequestParam Long userId) {
-
-        User user = userService.getUserById(userId); // Метод для получения пользователя
+        User user = userService.getUserById(userId); // Этот метод теперь выбрасывает ResponseStatusException, если пользователь не найден
         checkAdminAccess(user);
+
         Quiz createdQuiz = quizService.createQuiz(quiz);
-        return ResponseEntity.ok(createdQuiz);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdQuiz);
     }
 }
 

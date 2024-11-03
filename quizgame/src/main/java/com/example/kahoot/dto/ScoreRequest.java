@@ -2,7 +2,6 @@ package com.example.kahoot.dto;
 
 public class ScoreRequest {
 
-
     private Long userId;
     private Long quizId;
 
