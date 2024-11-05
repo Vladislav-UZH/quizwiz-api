@@ -15,6 +15,7 @@ public class User {
     @Setter
     private int score;
 
+
     public User() {
     }
 
@@ -31,5 +32,9 @@ public class User {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getPassword() {
+        return "";
     }
 }

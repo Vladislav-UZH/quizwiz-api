@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AdminController.class)
-public class AdminControllerTest {
+class AdminControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -43,8 +43,8 @@ public class AdminControllerTest {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        adminUser = new User(1L, "admin", 0, Role.ADMIN);
-        regularUser = new User(2L, "user", 0, Role.USER);
+        adminUser = new User(1L, "admin", 0, Role.ROLE_ADMIN);
+        regularUser = new User(2L, "user", 0, Role.ROLE_USER);
         quiz = new Quiz();
         quiz.setTitle("Sample Quiz");
     }
@@ -62,7 +62,7 @@ public class AdminControllerTest {
     }
 
     @Test
-    public void testCreateQuiz_NonAdminAccess() throws Exception {
+    void testCreateQuiz_NonAdminAccess() throws Exception {
         // Arrange
         when(userService.getUserById(2L)).thenReturn(regularUser);
 
@@ -77,7 +77,7 @@ public class AdminControllerTest {
     }
 
     @Test
-    public void testCreateQuiz_UserNotFound() throws Exception {
+    void testCreateQuiz_UserNotFound() throws Exception {
         // Arrange
         when(userService.getUserById(3L))
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
@@ -91,11 +91,12 @@ public class AdminControllerTest {
     }
 
     @Test
-    public void testCreateQuiz_UserIdMissing() throws Exception {
+    void testCreateQuiz_UserIdMissing() throws Exception {
         // Act & Assert
         mockMvc.perform(MockMvcRequestBuilders.post("/admin/create-quiz")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\": \"Sample Quiz\"}"))
                 .andExpect(status().isBadRequest());
     }
+
 }

@@ -24,7 +24,7 @@ public class AdminController {
 
     // Проверка роли администратора
     private void checkAdminAccess(User user) {
-        if (user == null || user.getRole() != Role.ADMIN) {
+        if (user == null || user.getRole() != Role.ROLE_ADMIN) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
         }
     }
