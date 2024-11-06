@@ -69,4 +69,8 @@ public class UserService implements UserDetailsService {
                 .roles(user.getRole().name())
                 .build();
     }
+    // Метод для удаления токенов пользователя при выходе (логика черного списка)
+    public void removeTokens(String token) {
+        // Реализация удаления токенов, если используете черный список
+    }
 }
