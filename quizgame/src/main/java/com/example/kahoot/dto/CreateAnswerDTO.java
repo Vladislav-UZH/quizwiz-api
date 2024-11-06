@@ -1,24 +1,15 @@
 package com.example.kahoot.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class CreateAnswerDTO {
+    @Setter
+    @Getter
     private String text;
     private boolean isCorrect;
 
-    // Геттеры и сеттеры
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
-    }
-
-    public boolean isCorrect() {
-        return isCorrect;
-    }
-
-    public void setCorrect(boolean correct) {
-        isCorrect = correct;
+    public CreateAnswerDTO(boolean isCorrect) {
+        this.isCorrect = isCorrect;
     }
 }

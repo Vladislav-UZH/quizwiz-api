@@ -28,7 +28,8 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.CONFLICT).build(); // 409 Conflict
         }
 
-        User admin = userService.createUser (username, Role.ROLE_ADMIN);
+        String defaultPassword = "admin123"; // Задайте значение по умолчанию или передавайте в запросе
+        User admin = userService.createUser(username, defaultPassword, Role.ROLE_ADMIN);
         return ResponseEntity.status(HttpStatus.CREATED).body(admin); // 201 Created
     }
     @GetMapping("/me")

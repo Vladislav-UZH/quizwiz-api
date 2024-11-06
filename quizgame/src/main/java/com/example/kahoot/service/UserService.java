@@ -1,54 +1,61 @@
 package com.example.kahoot.service;
 
+import com.example.kahoot.dto.UserCredentials;
 import com.example.kahoot.model.Role;
 import com.example.kahoot.model.User;
 import com.example.kahoot.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.List;
 
 @Service
 public class UserService implements UserDetailsService {
 
-    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
-
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-    public User createUser(String userName, Role role) {
+    public User createUser(String userName, String password, Role role) {
         if (existsByUsername(userName)) {
-            logger.warn("Attempt to create user with existing username: {}", userName);
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists");
         }
 
         User user = new User();
         user.setUserName(userName);
+        user.setPassword(passwordEncoder.encode(password));
         user.setRole(role);
         user.setScore(0);
-        User savedUser = userRepository.save(user);
-        logger.info("User  created successfully: {}", savedUser);
-        return savedUser;
+        return userRepository.save(user);
+    }
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
     public User getUserById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User  not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
 
     public boolean existsByUsername(String username) {
         return userRepository.findByUsername(username).isPresent();
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public User authenticate(UserCredentials credentials) {
+        User user = userRepository.findByUsername(credentials.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        if (!passwordEncoder.matches(credentials.getPassword(), user.getPassword())) {
+            throw new BadCredentialsException("Invalid password");
+        }
+        return user;
     }
 
     @Override
@@ -58,8 +65,8 @@ public class UserService implements UserDetailsService {
 
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUserName())
-                .password(user.getPassword()) // убедитесь, что пароль зашифрован
-                .roles(user.getRole().name()) // назначаем роли
+                .password(user.getPassword())
+                .roles(user.getRole().name())
                 .build();
     }
 }
