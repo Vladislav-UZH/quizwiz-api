@@ -18,7 +18,6 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-//должен быть настроен для разрешения определённых URL-адресов, защищённых JWT
 public class SecurityConfig {
 
     private final JwtTokenProvider tokenProvider;
@@ -27,26 +26,25 @@ public class SecurityConfig {
 
     public SecurityConfig(JwtTokenProvider tokenProvider, UserDetailsService userDetailsService) {
         this.tokenProvider = tokenProvider;
-        this.userDetailsService = userDetailsService; // Инициализация UserDetailsService
+        this.userDetailsService = userDetailsService;
     }
+
     @Bean
-    //метод настраивает правила безопасности для вашего приложения
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // Отключение CSRF-защиты, если необходимо
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll() // Открытые маршруты для регистрации и входа
-                        .requestMatchers("/admin/**").hasRole("ADMIN") // Только для администраторов
-                        .anyRequest().authenticated() // Доступ для аутентифицированных пользователей
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
                 )
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Без сохранения сессии на сервере
-                .httpBasic(Customizer.withDefaults()); // Включение базовой формы входа
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }
 
     @Bean
-    //Используется для хэширования паролей
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
@@ -71,10 +69,8 @@ public class SecurityConfig {
         AuthenticationManagerBuilder authenticationManagerBuilder =
                 http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder
-                .inMemoryAuthentication() // Использование in-memory аутентификации для примера
-                .withUser ("user").password(passwordEncoder().encode("password")).roles("USER")
-                .and()
-                .withUser ("admin").password(passwordEncoder().encode("admin")).roles("ADMIN");
+                .userDetailsService(userDetailsService) // Используем UserDetailsService
+                .passwordEncoder(passwordEncoder());
         return authenticationManagerBuilder.build();
     }
 }
