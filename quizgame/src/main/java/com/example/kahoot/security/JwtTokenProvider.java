@@ -1,8 +1,14 @@
 package com.example.kahoot.security;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +25,12 @@ public class JwtTokenProvider {
 
     @Value("${jwt.refreshTokenExpirationMs}")
     private int refreshTokenExpirationMs;
+
+    private SecretKey secretKey;
+
+    public JwtTokenProvider() {
+        this.secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512); // Генерация безопасного ключа
+    }
 
     public String generateToken(String username, boolean isAccessToken) {
         Date now = new Date();
