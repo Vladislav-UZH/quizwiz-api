@@ -69,8 +69,11 @@ public class UserService implements UserDetailsService {
                 .roles(user.getRole().name())
                 .build();
     }
-    // Метод для удаления токенов пользователя при выходе (логика черного списка)
-    public void removeTokens(String token) {
-        // Реализация удаления токенов, если используете черный список
+    // Метод для удаления пользователя по его ID
+    public void deleteUserById(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+        userRepository.deleteById(userId);
     }
 }

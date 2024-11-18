@@ -53,7 +53,9 @@ public class AuthController {
     public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
         String jwt = token.replace("Bearer ", "");
         if (tokenProvider.validateToken(jwt)) {
-            userService.removeTokens(jwt);  // Реализация логики черного списка
+            String username = tokenProvider.getUsernameFromToken(jwt);
+            User user = userService.getUserByUsername(username);
+            userService.deleteUserById(user.getId());  // Удаляем все токены пользователя по Id
             return ResponseEntity.ok("Logged out successfully");
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
