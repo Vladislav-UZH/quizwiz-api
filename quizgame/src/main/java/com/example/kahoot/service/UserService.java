@@ -5,6 +5,7 @@ import com.example.kahoot.model.Role;
 import com.example.kahoot.model.User;
 import com.example.kahoot.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,6 +21,8 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Lazy
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -32,7 +35,7 @@ public class UserService implements UserDetailsService {
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setRole(role);
-        user.setScore(0);
+//        user.setScore(0);
         return userRepository.save(user);
     }
     public User getUserByUsername(String username) {

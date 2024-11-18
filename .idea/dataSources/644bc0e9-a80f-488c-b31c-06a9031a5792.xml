@@ -3,7 +3,7 @@
   <database-model serializer="dbm" dbms="POSTGRES" family-id="POSTGRES" format-version="4.53">
     <root id="1">
       <DateStyle>dmy</DateStyle>
-      <IntrospectionStateNumber>863</IntrospectionStateNumber>
+      <IntrospectionStateNumber>869</IntrospectionStateNumber>
       <ServerVersion>16.4</ServerVersion>
       <StartupTime>1731608022</StartupTime>
       <TimeZones>true ACDT
@@ -801,7 +801,7 @@ false Zulu
 14643||10|C|G
 14643||-9223372036854775808|U|G
 14643||10|U|G</Grants>
-      <IntrospectionStateNumber>863</IntrospectionStateNumber>
+      <IntrospectionStateNumber>869</IntrospectionStateNumber>
       <ObjectId>5</ObjectId>
       <OwnerName>postgres</OwnerName>
     </database>
@@ -4278,8 +4278,8 @@ false Zulu
     <schema id="265" parent="2" name="public">
       <Comment>standard public schema</Comment>
       <Current>1</Current>
-      <IntrospectionStateNumber>863</IntrospectionStateNumber>
-      <LastIntrospectionLocalTimestamp>2024-11-18.18:46:59</LastIntrospectionLocalTimestamp>
+      <IntrospectionStateNumber>869</IntrospectionStateNumber>
+      <LastIntrospectionLocalTimestamp>2024-11-18.19:36:29</LastIntrospectionLocalTimestamp>
       <ObjectId>2200</ObjectId>
       <StateNumber>524</StateNumber>
       <OwnerName>pg_database_owner</OwnerName>
@@ -4725,7 +4725,7 @@ false Zulu
     </table>
     <table id="310" parent="265" name="users">
       <ObjectId>16734</ObjectId>
-      <StateNumber>860</StateNumber>
+      <StateNumber>864</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>postgres</OwnerName>
     </table>
@@ -5475,7 +5475,14 @@ false Zulu
       <StoredType>varchar(20)|0s</StoredType>
       <TypeId>1043</TypeId>
     </column>
-    <index id="468" parent="310" name="users_pkey">
+    <column id="468" parent="310" name="score">
+      <DefaultExpression>0</DefaultExpression>
+      <Position>5</Position>
+      <StateNumber>864</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <TypeId>23</TypeId>
+    </column>
+    <index id="469" parent="310" name="users_pkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>16738</ObjectId>
@@ -5484,7 +5491,7 @@ false Zulu
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <index id="469" parent="310" name="users_username_key">
+    <index id="470" parent="310" name="users_username_key">
       <ColNames>username</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>16740</ObjectId>
@@ -5495,14 +5502,14 @@ false Zulu
       <CollationIds>100</CollationIds>
       <CollationParentNames>pg_catalog</CollationParentNames>
     </index>
-    <key id="470" parent="310" name="users_pkey">
+    <key id="471" parent="310" name="users_pkey">
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>16739</ObjectId>
       <Primary>1</Primary>
       <StateNumber>860</StateNumber>
       <UnderlyingIndexId>16738</UnderlyingIndexId>
     </key>
-    <key id="471" parent="310" name="users_username_key">
+    <key id="472" parent="310" name="users_username_key">
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>16741</ObjectId>
       <StateNumber>860</StateNumber>
