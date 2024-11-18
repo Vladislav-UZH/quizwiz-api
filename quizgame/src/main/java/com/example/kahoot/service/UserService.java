@@ -23,13 +23,13 @@ public class UserService implements UserDetailsService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public User createUser(String userName, String password, Role role) {
-        if (existsByUsername(userName)) {
+    public User createUser(String username, String password, Role role) {
+        if (existsByUsername(username)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists");
         }
 
         User user = new User();
-        user.setUserName(userName);
+        user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setRole(role);
         user.setScore(0);
@@ -64,7 +64,7 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getUserName())
+                .username(user.getUsername())
                 .password(user.getPassword())
                 .roles(user.getRole().name())
                 .build();

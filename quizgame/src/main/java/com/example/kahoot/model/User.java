@@ -12,7 +12,7 @@ public class User {
     private Long id;
 
     @Setter
-    private String userName;
+    private String username;
 
     @Setter
     private int score;
@@ -27,15 +27,15 @@ public class User {
     public User() {
     }
 
-    public User(Long id, String userName, Role role) {
+    public User(Long id, String username, Role role) {
         this.id = id;
-        this.userName = userName;
+        this.username = username;
         this.role = role;
     }
 
-    public User(Long id, String userName, String password, int score, Role role) {
+    public User(Long id, String username, String password, int score, Role role) {
         this.id = id;
-        this.userName = userName;
+        this.username = username;
         this.password = password;
         this.score = score;
         this.role = role;

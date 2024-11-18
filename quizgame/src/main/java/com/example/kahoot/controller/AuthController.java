@@ -34,8 +34,8 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserCredentials credentials) {
         User user = userService.authenticate(credentials);
-        String accessToken = tokenProvider.generateToken(user.getUserName(), true);
-        String refreshToken = tokenProvider.generateToken(user.getUserName(), false);
+        String accessToken = tokenProvider.generateToken(user.getUsername(), true);
+        String refreshToken = tokenProvider.generateToken(user.getUsername(), false);
         return ResponseEntity.ok(new AuthResponse(accessToken, refreshToken));
     }
 
@@ -67,7 +67,7 @@ public class AuthController {
         if (tokenProvider.validateToken(token)) {
             String username = tokenProvider.getUsernameFromToken(token);
             User user = userService.getUserByUsername(username);
-            UserResponse userResponse = new UserResponse(user.getUserName(), user.getScore(), user.getRole());
+            UserResponse userResponse = new UserResponse(user.getUsername(), user.getScore(), user.getRole());
             return ResponseEntity.ok(userResponse);
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
