@@ -1,64 +1,114 @@
 package com.example.kahoot.security;
 
+import com.example.kahoot.model.Token;
+import com.example.kahoot.model.User;
+import com.example.kahoot.repository.TokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import javax.crypto.SecretKey;
+import java.time.Instant;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
 
-@Component
-//класс должен генерировать и проверять токены
+@Service
 public class JwtTokenProvider {
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
+    private final String jwtSecret = "AngxLHD4linAzspMkdrmhPavoJ6+FUxI6otyYN5EpN+JRqnwmRezv18l5Q/+2KqlTf51vkrqbrzTdUqzvQWsYA==";
+    private final long jwtExpirationInMillis = 3600000; // 1 година
 
-    @Value("${jwt.accessTokenExpirationMs}")
-    private int accessTokenExpirationMs;
+    @Autowired
+    private TokenRepository tokenRepository;
 
-    @Value("${jwt.refreshTokenExpirationMs}")
-    private int refreshTokenExpirationMs;
+    public String generateToken(User user, String tokenType) {
+        long expirationTime = tokenType.equals("access") ? jwtExpirationInMillis : jwtExpirationInMillis * 24; // Refresh токен діє довше
+        Date issuedAt = new Date();
+        Date expiresAt = new Date(issuedAt.getTime() + expirationTime);
 
-    private SecretKey secretKey;
-
-    public JwtTokenProvider() {
-        this.secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512); // Генерация безопасного ключа
-    }
-
-    public String generateToken(String username, boolean isAccessToken) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + (isAccessToken ? accessTokenExpirationMs : refreshTokenExpirationMs));
-
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("username", username);
-
-        return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(expiryDate)
+        // Генерація унікального токену для кожного типу
+        String tokenValue = Jwts.builder()
+                .setSubject(user.getId().toString())
+                .setIssuedAt(issuedAt)
+                .setExpiration(expiresAt)
+                .claim("type", tokenType) // Додаємо тип токена в claims
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();
+
+        // Видалення існуючого токена такого ж типу
+        tokenRepository.findByUserAndTokenType(user, tokenType).ifPresent(tokenRepository::delete);
+
+        // Збереження нового токена
+        Token newToken = new Token();
+        newToken.setUser(user);
+        newToken.setTokenValue(tokenValue);
+        newToken.setTokenType(tokenType);
+        newToken.setExpirationDate(expiresAt.toInstant());
+        tokenRepository.save(newToken);
+
+        return tokenValue;
     }
 
-    public String getUsernameFromToken(String token) {
-        Claims claims = Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
-        return claims.getSubject();
-    }
 
-    public boolean validateToken(String token) {
+    public boolean validateToken(String tokenValue) {
         try {
-            Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
-            return true;
+            Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(tokenValue);
+
+            Optional<Token> storedToken = tokenRepository.findByTokenValue(tokenValue);
+            return storedToken.isPresent() && !isTokenExpired(storedToken.get());
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
+    }
+
+    public String generateOrUpdateToken(User user, String tokenType) {
+        Optional<Token> existingToken = tokenRepository.findByUserAndTokenType(user, tokenType);
+
+        Date issuedAt = new Date();
+        Date expiresAt = new Date(issuedAt.getTime() + jwtExpirationInMillis);
+
+        String tokenValue = Jwts.builder()
+                .setSubject(user.getId().toString())
+                .setIssuedAt(issuedAt)
+                .setExpiration(expiresAt)
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .compact();
+
+        if (existingToken.isPresent()) {
+            Token token = existingToken.get();
+            token.setTokenValue(tokenValue);
+            token.setExpirationDate(expiresAt.toInstant());
+            tokenRepository.save(token);
+        } else {
+            Token newToken = new Token();
+            newToken.setUser(user);
+            newToken.setTokenValue(tokenValue);
+            newToken.setTokenType(tokenType);
+            newToken.setExpirationDate(expiresAt.toInstant());
+            tokenRepository.save(newToken);
+        }
+
+        return tokenValue;
+    }
+
+    public Long getUserIdFromToken(String tokenValue) {
+        Claims claims = Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(tokenValue).getBody();
+        return Long.parseLong(claims.getSubject());
+    }
+
+    public boolean isTokenOfType(String tokenValue, String tokenType) {
+        Optional<Token> storedToken = tokenRepository.findByTokenValue(tokenValue);
+        return storedToken.isPresent() && storedToken.get().getTokenType().equalsIgnoreCase(tokenType);
+    }
+
+    public void revokeToken(String tokenValue) {
+        Optional<Token> storedToken = tokenRepository.findByTokenValue(tokenValue);
+        storedToken.ifPresent(tokenRepository::delete);
+    }
+
+    private boolean isTokenExpired(Token token) {
+        return token.getExpirationDate().isBefore(Instant.now());
     }
 }

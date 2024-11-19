@@ -25,57 +25,74 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserCredentials userCredentials) {
-        userService.createUser(userCredentials.getUsername(), userCredentials.getPassword(), Role.ROLE_USER);
-        String accessToken = tokenProvider.generateToken(userCredentials.getUsername(), true);
-        String refreshToken = tokenProvider.generateToken(userCredentials.getUsername(), false);
+        User user = userService.createUser(userCredentials.getUsername(), userCredentials.getPassword(), Role.ROLE_USER);
+
+        // Генерація окремих значень для токенів
+        String accessToken = tokenProvider.generateToken(user, "access");
+        String refreshToken = tokenProvider.generateToken(user, "refresh");
+
         return ResponseEntity.ok(new AuthResponse(accessToken, refreshToken));
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserCredentials credentials) {
         User user = userService.authenticate(credentials);
-        String accessToken = tokenProvider.generateToken(user.getUsername(), true);
-        String refreshToken = tokenProvider.generateToken(user.getUsername(), false);
+
+        // Генерація окремих значень для токенів
+        String accessToken = tokenProvider.generateToken(user, "access");
+        String refreshToken = tokenProvider.generateToken(user, "refresh");
+
         return ResponseEntity.ok(new AuthResponse(accessToken, refreshToken));
     }
+
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@RequestBody TokenRequest tokenRequest) {
         if (tokenRequest == null || tokenRequest.getRefreshToken() == null) {
             return ResponseEntity.badRequest().body("Refresh token is missing");
         }
-        // Логирование
-        System.out.println("Received refresh token: " + tokenRequest.getRefreshToken());
 
-        if (tokenProvider.validateToken(tokenRequest.getRefreshToken())) {
-            String username = tokenProvider.getUsernameFromToken(tokenRequest.getRefreshToken());
-            String accessToken = tokenProvider.generateToken(username, true);
+        // Перевірка токена
+        if (tokenProvider.validateToken(tokenRequest.getRefreshToken()) &&
+                tokenProvider.isTokenOfType(tokenRequest.getRefreshToken(), "refresh")) {
+
+            Long userId = tokenProvider.getUserIdFromToken(tokenRequest.getRefreshToken());
+            User user = userService.getUserById(userId);
+
+            // Генерація нового Access токена
+            String accessToken = tokenProvider.generateToken(user, "access");
+
             return ResponseEntity.ok(new AuthResponse(accessToken, tokenRequest.getRefreshToken()));
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token");
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
-        String jwt = token.replace("Bearer ", "");
-        if (tokenProvider.validateToken(jwt)) {
-            String username = tokenProvider.getUsernameFromToken(jwt);
-            User user = userService.getUserByUsername(username);
-            userService.deleteUserById(user.getId());  // Удаляем все токены пользователя по Id
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
+        String jwt = authHeader != null ? authHeader.replace("Bearer ", "") : null;
+
+        if (jwt != null && tokenProvider.validateToken(jwt)) {
+            tokenProvider.revokeToken(jwt);
             return ResponseEntity.ok("Logged out successfully");
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
     }
+
 
     @GetMapping("/current")
     public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer ", "");
-        if (tokenProvider.validateToken(token)) {
-            String username = tokenProvider.getUsernameFromToken(token);
-            User user = userService.getUserByUsername(username);
+
+        if (tokenProvider.validateToken(token) && tokenProvider.isTokenOfType(token, "access")) {
+            Long userId = tokenProvider.getUserIdFromToken(token);
+            User user = userService.getUserById(userId);
+
             UserResponse userResponse = new UserResponse(user.getUsername(), user.getScore(), user.getRole());
             return ResponseEntity.ok(userResponse);
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
     }
 }
