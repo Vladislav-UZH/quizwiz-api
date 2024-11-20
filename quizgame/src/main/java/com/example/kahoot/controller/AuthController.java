@@ -41,6 +41,12 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@RequestBody TokenRequest tokenRequest) {
+        if (tokenRequest == null || tokenRequest.getRefreshToken() == null) {
+            return ResponseEntity.badRequest().body("Refresh token is missing");
+        }
+        // Логирование
+        System.out.println("Received refresh token: " + tokenRequest.getRefreshToken());
+
         if (tokenProvider.validateToken(tokenRequest.getRefreshToken())) {
             String username = tokenProvider.getUsernameFromToken(tokenRequest.getRefreshToken());
             String accessToken = tokenProvider.generateToken(username, true);
