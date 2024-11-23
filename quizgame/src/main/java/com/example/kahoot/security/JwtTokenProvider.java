@@ -51,7 +51,6 @@ public class JwtTokenProvider {
         return tokenValue;
     }
 
-
     public boolean validateToken(String tokenValue) {
         try {
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(tokenValue);
@@ -67,7 +66,6 @@ public class JwtTokenProvider {
             return false;
         }
     }
-
 
     public String generateOrUpdateToken(User user, String tokenType) {
         Optional<Token> existingToken = tokenRepository.findByUserAndTokenType(user, tokenType);
