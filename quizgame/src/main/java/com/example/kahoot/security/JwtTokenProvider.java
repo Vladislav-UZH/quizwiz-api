@@ -55,13 +55,19 @@ public class JwtTokenProvider {
     public boolean validateToken(String tokenValue) {
         try {
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(tokenValue);
+            System.out.println("JWT token parsed successfully");
 
             Optional<Token> storedToken = tokenRepository.findByTokenValue(tokenValue);
-            return storedToken.isPresent() && !isTokenExpired(storedToken.get());
+            boolean tokenValid = storedToken.isPresent() && !isTokenExpired(storedToken.get());
+            System.out.println("Token exists in database: " + storedToken.isPresent());
+            System.out.println("Token is expired: " + isTokenExpired(storedToken.get()));
+            return tokenValid;
         } catch (JwtException | IllegalArgumentException e) {
+            System.out.println("Token validation failed: " + e.getMessage());
             return false;
         }
     }
+
 
     public String generateOrUpdateToken(User user, String tokenType) {
         Optional<Token> existingToken = tokenRepository.findByUserAndTokenType(user, tokenType);

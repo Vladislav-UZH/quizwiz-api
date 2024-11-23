@@ -10,6 +10,9 @@ import com.example.kahoot.security.JwtTokenProvider;
 import com.example.kahoot.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -44,7 +47,6 @@ public class AuthController {
 
         return ResponseEntity.ok(new AuthResponse(accessToken, refreshToken));
     }
-
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@RequestBody TokenRequest tokenRequest) {
@@ -82,12 +84,11 @@ public class AuthController {
 
 
     @GetMapping("/current")
-    public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.replace("Bearer ", "");
+    public ResponseEntity<?> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (tokenProvider.validateToken(token) && tokenProvider.isTokenOfType(token, "access")) {
-            Long userId = tokenProvider.getUserIdFromToken(token);
-            User user = userService.getUserById(userId);
+        if (authentication != null && authentication.isAuthenticated() && !(authentication instanceof AnonymousAuthenticationToken)) {
+            User user = (User) authentication.getPrincipal();
 
             UserResponse userResponse = new UserResponse(user.getUsername(), user.getScore(), user.getRole());
             return ResponseEntity.ok(userResponse);
@@ -95,4 +96,5 @@ public class AuthController {
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
     }
+
 }
