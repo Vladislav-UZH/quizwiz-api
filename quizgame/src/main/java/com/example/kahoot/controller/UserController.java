@@ -7,13 +7,12 @@ import jakarta.validation.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-// UserController.java
+// UserController
 @RestController
 @RequestMapping("/users")
 @Validated
@@ -29,7 +28,12 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.CONFLICT).build(); // 409 Conflict
         }
 
-        User admin = userService.createUser (username, Role.ADMIN);
+        String defaultPassword = "admin123"; // Задайте значение по умолчанию или передавайте в запросе
+        User admin = userService.createUser(username, defaultPassword, Role.ROLE_ADMIN);
         return ResponseEntity.status(HttpStatus.CREATED).body(admin); // 201 Created
+    }
+    @GetMapping("/me")
+    public UserDetails getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+        return userDetails;
     }
 }

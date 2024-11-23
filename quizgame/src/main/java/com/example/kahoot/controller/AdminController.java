@@ -24,7 +24,7 @@ public class AdminController {
 
     // Проверка роли администратора
     private void checkAdminAccess(User user) {
-        if (user == null || user.getRole() != Role.ADMIN) {
+        if (user == null || user.getRole() != Role.ROLE_ADMIN) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
         }
     }
@@ -36,6 +36,11 @@ public class AdminController {
 
         Quiz createdQuiz = quizService.createQuiz(quiz);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdQuiz);
+    }
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
+        userService.deleteUserById(userId);
+        return ResponseEntity.ok("User has been deleted successfully.");
     }
 }
 
