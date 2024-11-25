@@ -26,6 +26,17 @@ public class User implements UserDetails {
 
     private int score;
 
+    public User() {
+    }
+
+    public User(Long id, String username, String password, Role role, int score) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.role = role;
+        this.score = score;
+    }
+
     // Конструктори, геттери та сеттери
 
     @Override

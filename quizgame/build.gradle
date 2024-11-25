@@ -62,7 +62,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 
 	testImplementation 'org.springframework.security:spring-security-test'
-
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
 	implementation("org.springframework.boot:spring-boot-starter-cache:${springCacheVersion}")
 
@@ -75,6 +75,9 @@ dependencyManagement {
 	}
 }
 
+tasks.named('test') {
+	useJUnitPlatform()
+}
 tasks.withType(JavaCompile).configureEach {
 	options.compilerArgs << '-Xlint:deprecation'
 }

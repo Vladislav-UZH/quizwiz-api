@@ -11,5 +11,8 @@
         <module name="quizgame.main" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="quizgame.test" target="17" />
+    </bytecodeTargetLevel>
   </component>
 </project>
