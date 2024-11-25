@@ -32,8 +32,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
+        System.out.println("JwtAuthenticationFilter is called for URI: " + request.getRequestURI());
+
         try {
             String jwt = getJwtFromRequest(request);
+
+            if (StringUtils.hasText(jwt)) {
+                System.out.println("JWT Token: " + jwt);
+                if (tokenProvider.validateToken(jwt)) {
+                    System.out.println("Token is valid");
+                    if (tokenProvider.isTokenOfType(jwt, "access")) {
+                        System.out.println("Token is of type 'access'");
+                    } else {
+                        System.out.println("Token is NOT of type 'access'");
+                    }
+                } else {
+                    System.out.println("Token is invalid");
+                }
+            } else {
+                System.out.println("No JWT Token found in request");
+            }
+
 
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt) &&
                     tokenProvider.isTokenOfType(jwt, "access")) {

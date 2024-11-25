@@ -7,12 +7,9 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
@@ -23,15 +20,8 @@ public class JwtTokenProvider {
     private final String jwtSecret = "AngxLHD4linAzspMkdrmhPavoJ6+FUxI6otyYN5EpN+JRqnwmRezv18l5Q/+2KqlTf51vkrqbrzTdUqzvQWsYA==";
     private final long jwtExpirationInMillis = 3600000; // 1 година
 
-    private final SecretKey secretKey;
-
     @Autowired
     private TokenRepository tokenRepository;
-
-    public JwtTokenProvider() {
-        this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-    }
-
 
     public String generateToken(User user, String tokenType) {
         long expirationTime = tokenType.equals("access") ? jwtExpirationInMillis : jwtExpirationInMillis * 24; // Refresh токен діє довше
@@ -44,7 +34,7 @@ public class JwtTokenProvider {
                 .setIssuedAt(issuedAt)
                 .setExpiration(expiresAt)
                 .claim("type", tokenType) // Додаємо тип токена в claims
-                .signWith(secretKey, SignatureAlgorithm.HS512)
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();
 
         // Видалення існуючого токена такого ж типу
@@ -61,17 +51,18 @@ public class JwtTokenProvider {
         return tokenValue;
     }
 
-
     public boolean validateToken(String tokenValue) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(secretKey)
-                    .build()
-                    .parseClaimsJws(tokenValue);
+            Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(tokenValue);
+            System.out.println("JWT token parsed successfully");
 
             Optional<Token> storedToken = tokenRepository.findByTokenValue(tokenValue);
-            return storedToken.isPresent() && !isTokenExpired(storedToken.get());
+            boolean tokenValid = storedToken.isPresent() && !isTokenExpired(storedToken.get());
+            System.out.println("Token exists in database: " + storedToken.isPresent());
+            System.out.println("Token is expired: " + isTokenExpired(storedToken.get()));
+            return tokenValid;
         } catch (JwtException | IllegalArgumentException e) {
+            System.out.println("Token validation failed: " + e.getMessage());
             return false;
         }
     }
@@ -86,7 +77,7 @@ public class JwtTokenProvider {
                 .setSubject(user.getId().toString())
                 .setIssuedAt(issuedAt)
                 .setExpiration(expiresAt)
-                .signWith(secretKey, SignatureAlgorithm.HS512)
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();
 
         if (existingToken.isPresent()) {
@@ -107,7 +98,7 @@ public class JwtTokenProvider {
     }
 
     public Long getUserIdFromToken(String tokenValue) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(tokenValue).getBody();
+        Claims claims = Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(tokenValue).getBody();
         return Long.parseLong(claims.getSubject());
     }
 
