@@ -39,7 +39,7 @@ dependencies {
 
 	compileOnly 'org.projectlombok:lombok'
 
-	implementation 'org.postgresql:postgresql:42.6.0'
+	implementation 'org.postgresql:postgresql:42.7.2'
 
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -63,7 +63,7 @@ dependencies {
 
 	testImplementation 'org.springframework.security:spring-security-test'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
-
+	testImplementation 'org.mockito:mockito-core'
 	implementation("org.springframework.boot:spring-boot-starter-cache:${springCacheVersion}")
 
 
@@ -75,7 +75,7 @@ dependencyManagement {
 	}
 }
 
-tasks.named('test') {
+test {
 	useJUnitPlatform()
 }
 tasks.withType(JavaCompile).configureEach {
