@@ -2,8 +2,12 @@ package com.example.kahoot.auth;
 
 import com.example.kahoot.dto.UserResponse;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import lombok.Getter;
+import lombok.Setter;
 
-@JsonPropertyOrder({ "message", "user" })
+@Setter
+@Getter
+@JsonPropertyOrder({"message", "user"})
 public class LogoutResponse {
     private String message;
     private UserResponse user;
@@ -13,22 +17,6 @@ public class LogoutResponse {
         this.user = user;
     }
 
-    // Геттери та сеттери
 
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public UserResponse getUser() {
-        return user;
-    }
-
-    public void setUser(UserResponse user) {
-        this.user = user;
-    }
 }
 
