@@ -24,12 +24,12 @@ import javax.servlet.http.HttpServletResponse;
 public class SecurityConfig {
 
     private final JwtTokenProvider tokenProvider;
-    private final UserService userService; // Змінено з UserDetailsService на UserService
+    private final UserService userService;
 
     @Autowired
     public SecurityConfig(JwtTokenProvider tokenProvider, UserService userService) {
         this.tokenProvider = tokenProvider;
-        this.userService = userService; // Оновлено
+        this.userService = userService;
     }
 
     @Bean
@@ -41,6 +41,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login", "/auth/register", "/auth/refresh").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/ws/**").permitAll() // Дозволити з'єднання WebSocket
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -53,7 +54,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -64,7 +64,7 @@ public class SecurityConfig {
         AuthenticationManagerBuilder authenticationManagerBuilder =
                 http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder
-                .userDetailsService(userService) // Використовуємо userService
+                .userDetailsService(userService)
                 .passwordEncoder(passwordEncoder());
         return authenticationManagerBuilder.build();
     }
