@@ -5,8 +5,10 @@ import com.example.kahoot.model.Role;
 import com.example.kahoot.model.User;
 import com.example.kahoot.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,25 +16,29 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 
 @Service
 public class UserService implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Lazy
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public User createUser(String userName, String password, Role role) {
-        if (existsByUsername(userName)) {
+    public User createUser(String username, String password, Role role) {
+        if (existsByUsername(username)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists");
         }
 
         User user = new User();
-        user.setUserName(userName);
+        user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setRole(role);
-        user.setScore(0);
+//        user.setScore(0);
         return userRepository.save(user);
     }
     public User getUserByUsername(String username) {
@@ -60,15 +66,11 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
+        return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getUserName())
-                .password(user.getPassword())
-                .roles(user.getRole().name())
-                .build();
     }
+
+
     // Метод для удаления пользователя по его ID
     public void deleteUserById(Long userId) {
         if (!userRepository.existsById(userId)) {

@@ -1,41 +1,75 @@
 package com.example.kahoot.security;
 
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.web.filter.OncePerRequestFilter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.List;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-//Этот фильтр добавляется в цепочку фильтров Spring Security для перехвата запросов, извлечения токена из заголовков и его проверки
+import com.example.kahoot.model.User;
+import com.example.kahoot.service.UserService;
+
+import java.io.IOException;
+
+@Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider tokenProvider;
+    private final UserService userService;
 
-    public JwtAuthenticationFilter(JwtTokenProvider tokenProvider) {
+    public JwtAuthenticationFilter(JwtTokenProvider tokenProvider, UserService userService) {
         this.tokenProvider = tokenProvider;
+        this.userService = userService;
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
-        String jwt = getJwtFromRequest(request);
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
 
-        if (jwt != null && tokenProvider.validateToken(jwt)) {
-            String username = tokenProvider.getUsernameFromToken(jwt);
+        System.out.println("JwtAuthenticationFilter is called for URI: " + request.getRequestURI());
 
-            // Логика для создания UserDetails и проверки пользователя
+        try {
+            String jwt = getJwtFromRequest(request);
 
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(username, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            if (StringUtils.hasText(jwt)) {
+                System.out.println("JWT Token: " + jwt);
+                if (tokenProvider.validateToken(jwt)) {
+                    System.out.println("Token is valid");
+                    if (tokenProvider.isTokenOfType(jwt, "access")) {
+                        System.out.println("Token is of type 'access'");
+                    } else {
+                        System.out.println("Token is NOT of type 'access'");
+                    }
+                } else {
+                    System.out.println("Token is invalid");
+                }
+            } else {
+                System.out.println("No JWT Token found in request");
+            }
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt) &&
+                    tokenProvider.isTokenOfType(jwt, "access")) {
+
+                Long userId = tokenProvider.getUserIdFromToken(jwt);
+                User user = userService.getUserById(userId);
+
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        user, null, user.getAuthorities());
+
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        } catch (Exception ex) {
+            // Логування або обробка виключень
+            ex.printStackTrace(); // Додайте логування помилок для діагностики
         }
 
         filterChain.doFilter(request, response);
@@ -43,7 +77,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private String getJwtFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
         return null;

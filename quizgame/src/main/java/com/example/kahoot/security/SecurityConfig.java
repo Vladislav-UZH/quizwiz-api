@@ -1,64 +1,71 @@
 package com.example.kahoot.security;
 
+import com.example.kahoot.security.JwtAuthenticationFilter;
+import com.example.kahoot.security.JwtTokenProvider;
+import com.example.kahoot.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import javax.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
-//должен быть настроен для разрешения определённых URL-адресов, защищённых JWT
 public class SecurityConfig {
 
     private final JwtTokenProvider tokenProvider;
+    private final UserService userService;
 
-    private final UserDetailsService userDetailsService;
-
-    public SecurityConfig(JwtTokenProvider tokenProvider, UserDetailsService userDetailsService) {
+    @Autowired
+    public SecurityConfig(JwtTokenProvider tokenProvider, UserService userService) {
         this.tokenProvider = tokenProvider;
-        this.userDetailsService = userDetailsService; // Инициализация UserDetailsService
+        this.userService = userService;
     }
+
     @Bean
-    //метод настраивает правила безопасности для вашего приложения
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(tokenProvider, userService);
+
         http
-                .csrf(AbstractHttpConfigurer::disable) // Отключение CSRF-защиты, если необходимо
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll() // Открытые маршруты для регистрации и входа
-                        .requestMatchers("/admin/**").hasRole("ADMIN") // Только для администраторов
-                        .anyRequest().authenticated() // Доступ для аутентифицированных пользователей
+                        .requestMatchers("/auth/login", "/auth/register", "/auth/refresh").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/ws/**").permitAll() // Дозволити з'єднання WebSocket
+                        .anyRequest().authenticated()
                 )
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Без сохранения сессии на сервере
-                .httpBasic(Customizer.withDefaults()); // Включение базовой формы входа
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
+                    System.out.println("Authentication Entry Point called: " + authException.getMessage());
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
+                }));
 
         return http.build();
     }
 
     @Bean
-    //Используется для хэширования паролей
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    //метод настраивает механизм аутентификации
     public AuthenticationManager authManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder =
                 http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder
-                .inMemoryAuthentication() // Использование in-memory аутентификации для примера
-                .withUser ("user").password(passwordEncoder().encode("password")).roles("USER")
-                .and()
-                .withUser ("admin").password(passwordEncoder().encode("admin")).roles("ADMIN");
+                .userDetailsService(userService)
+                .passwordEncoder(passwordEncoder());
         return authenticationManagerBuilder.build();
     }
 }
