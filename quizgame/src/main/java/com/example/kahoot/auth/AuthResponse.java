@@ -3,7 +3,9 @@ package com.example.kahoot.auth;
 import com.example.kahoot.dto.UserResponse;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Getter;
+import lombok.Setter;
 
+@Setter
 @Getter
 @JsonPropertyOrder({ "accessToken", "refreshToken", "user" })
 public class AuthResponse {
@@ -19,15 +21,4 @@ public class AuthResponse {
 
     // Геттери та сеттери
 
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
-    }
-
-    public void setRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
-    }
-
-    public void setUser(UserResponse user) {
-        this.user = user;
-    }
 }
