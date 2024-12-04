@@ -8,7 +8,11 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -20,16 +24,25 @@ import java.util.Optional;
 @Service
 public class JwtTokenProvider {
 
-    private final String jwtSecret = "AngxLHD4linAzspMkdrmhPavoJ6+FUxI6otyYN5EpN+JRqnwmRezv18l5Q/+2KqlTf51vkrqbrzTdUqzvQWsYA==";
+    @Value("${jwt.secret}")
+    private String jwtSecret;
     private final long jwtExpirationInMillis = 3600000; // 1 година
 
-    private final SecretKey secretKey;
+    private SecretKey secretKey;
 
     @Autowired
     private TokenRepository tokenRepository;
 
-    public JwtTokenProvider() {
-        this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
+
+    @PostConstruct
+    public void init() {
+        if (this.secretKey == null) {
+            if (jwtSecret == null || jwtSecret.isBlank()) {
+                throw new IllegalArgumentException("JWT secret key cannot be null or empty!");
+            }
+            this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        }
     }
 
     public String generateToken(User user, String tokenType) {
@@ -62,20 +75,23 @@ public class JwtTokenProvider {
 
     public boolean validateToken(String tokenValue) {
         try {
-            Jwts
-                    .parserBuilder()
+            Jwts.parserBuilder()
                     .setSigningKey(secretKey)
                     .build()
                     .parseClaimsJws(tokenValue);
-            System.out.println("JWT token parsed successfully");
+            logger.info("JWT token parsed successfully");
 
             Optional<Token> storedToken = tokenRepository.findByTokenValue(tokenValue);
-            boolean tokenValid = storedToken.isPresent() && !isTokenExpired(storedToken.get());
-            System.out.println("Token exists in database: " + storedToken.isPresent());
-            System.out.println("Token is expired: " + isTokenExpired(storedToken.get()));
-            return tokenValid;
+            if (storedToken.isPresent()) {
+                boolean isExpired = isTokenExpired(storedToken.get());
+                logger.info("Token exists in database. Is expired: {}", isExpired);
+                return !isExpired;
+            }
+
+            logger.warn("Token does not exist in database.");
+            return false;
         } catch (JwtException | IllegalArgumentException e) {
-            System.out.println("Token validation failed: " + e.getMessage());
+            logger.error("Token validation failed: {}", e.getMessage());
             return false;
         }
     }

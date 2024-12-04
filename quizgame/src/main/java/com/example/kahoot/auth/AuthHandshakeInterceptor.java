@@ -11,6 +11,8 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 import java.util.Map;
 
 public class AuthHandshakeInterceptor implements HandshakeInterceptor {
+
+
     private final JwtTokenProvider tokenProvider;
 
     public AuthHandshakeInterceptor(JwtTokenProvider tokenProvider) {
@@ -32,5 +34,6 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
     }
 
     @Override
-    public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Exception ex) {}
+    public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Exception ex) {
+    }
 }

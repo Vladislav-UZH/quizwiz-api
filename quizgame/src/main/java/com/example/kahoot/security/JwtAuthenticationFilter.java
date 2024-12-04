@@ -4,6 +4,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -21,6 +23,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider tokenProvider;
     private final UserService userService;
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     public JwtAuthenticationFilter(JwtTokenProvider tokenProvider, UserService userService) {
         this.tokenProvider = tokenProvider;
@@ -28,31 +31,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    public void doFilterInternal(HttpServletRequest request,
+    protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        System.out.println("JwtAuthenticationFilter is called for URI: " + request.getRequestURI());
+        logger.info("JwtAuthenticationFilter is called for URI: {}", request.getRequestURI());
 
         try {
             String jwt = getJwtFromRequest(request);
 
             if (StringUtils.hasText(jwt)) {
-                System.out.println("JWT Token: " + jwt);
+                logger.debug("JWT Token: {}", jwt);
                 if (tokenProvider.validateToken(jwt)) {
-                    System.out.println("Token is valid");
+                    logger.info("Token is valid");
                     if (tokenProvider.isTokenOfType(jwt, "access")) {
-                        System.out.println("Token is of type 'access'");
+                        logger.info("Token is of type 'access'");
                     } else {
-                        System.out.println("Token is NOT of type 'access'");
+                        logger.warn("Token is NOT of type 'access'");
                     }
                 } else {
-                    System.out.println("Token is invalid");
+                    logger.warn("Token is invalid");
                 }
             } else {
-                System.out.println("No JWT Token found in request");
+                logger.info("No JWT Token found in request");
             }
-
 
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt) &&
                     tokenProvider.isTokenOfType(jwt, "access")) {
@@ -66,10 +68,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                logger.info("Authentication set for user ID: {}", userId);
             }
         } catch (Exception ex) {
-            // Логування або обробка виключень
-            ex.printStackTrace(); // Додайте логування помилок для діагностики
+            logger.error("An error occurred during authentication: {}", ex.getMessage(), ex);
         }
 
         filterChain.doFilter(request, response);
