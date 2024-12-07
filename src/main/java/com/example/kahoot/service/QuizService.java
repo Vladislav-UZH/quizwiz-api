@@ -3,7 +3,6 @@ package com.example.kahoot.service;
 import com.example.kahoot.dto.AnswerDTO;
 import com.example.kahoot.dto.QuestionDTO;
 import com.example.kahoot.dto.QuizDTO;
-import com.example.kahoot.model.Question;
 import com.example.kahoot.model.Quiz;
 import com.example.kahoot.repository.QuizRepository;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -3,24 +3,24 @@ package com.example.kahoot.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "question")
-public class Question {
+@Table(name = "options")
+public class Option {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "quiz_stack_id", nullable = false)
-    private Long quizStackId;
+    @Column(name = "question_id", nullable = false)
+    private Long questionId;
 
     @Column(nullable = false)
     private String text;
 
     // Конструктори
-    public Question() {
+    public Option() {
     }
 
-    public Question(Long quizStackId, String text) {
-        this.quizStackId = quizStackId;
+    public Option(Long questionId, String text) {
+        this.questionId = questionId;
         this.text = text;
     }
 
@@ -29,8 +29,8 @@ public class Question {
         return id;
     }
 
-    public Long getQuizStackId() {
-        return quizStackId;
+    public Long getQuestionId() {
+        return questionId;
     }
 
     public String getText() {
@@ -41,8 +41,8 @@ public class Question {
         this.id = id;
     }
 
-    public void setQuizStackId(Long quizStackId) {
-        this.quizStackId = quizStackId;
+    public void setQuestionId(Long questionId) {
+        this.questionId = questionId;
     }
 
     public void setText(String text) {

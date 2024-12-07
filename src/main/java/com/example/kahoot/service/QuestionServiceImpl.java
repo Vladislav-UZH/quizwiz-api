@@ -2,7 +2,6 @@ package com.example.kahoot.service;
 
 import com.example.kahoot.dto.QuestionDto;
 import com.example.kahoot.interfaces.QuestionService;
-import com.example.kahoot.model.Question;
 import com.example.kahoot.repository.QuestionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
