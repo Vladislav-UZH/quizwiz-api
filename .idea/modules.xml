@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/quizgame.main.iml" filepath="$PROJECT_DIR$/.idea/modules/quizgame.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/quizwiz-api.iml" filepath="$PROJECT_DIR$/.idea/quizwiz-api.iml" />
     </modules>
   </component>
 </project>
