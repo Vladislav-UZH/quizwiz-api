@@ -1,7 +1,13 @@
 package com.example.kahoot.service;
 
+import com.example.kahoot.dto.OptionDto;
 import com.example.kahoot.dto.QuestionDto;
 import com.example.kahoot.interfaces.QuestionService;
+import com.example.kahoot.model.Option;
+import com.example.kahoot.model.Question;
+import com.example.kahoot.model.Quiz;
+import com.example.kahoot.repository.QuestionRepository;
+import com.example.kahoot.repository.QuizRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,21 +19,20 @@ import java.util.stream.Collectors;
 public class QuestionServiceImpl implements QuestionService {
 
     private final QuestionRepository questionRepository;
-    private final QuizStackRepository quizStackRepository;
+    private final QuizRepository quizRepository;
 
-    public QuestionServiceImpl(QuestionRepository questionRepository, QuizStackRepository quizStackRepository) {
+    public QuestionServiceImpl(QuestionRepository questionRepository, QuizRepository quizRepository) {
         this.questionRepository = questionRepository;
-        this.quizStackRepository = quizStackRepository;
+        this.quizRepository = quizRepository;
     }
 
     @Override
     public QuestionDto createQuestion(QuestionDto questionDto) {
-        // Перевіряємо, чи існує QuizStack
-        quizStackRepository.findById(questionDto.getQuizStackId())
-                .orElseThrow(() -> new RuntimeException("QuizStack not found"));
+        Quiz quiz = quizRepository.findById(questionDto.getQuizStackId())
+                .orElseThrow(() -> new RuntimeException("Quiz not found"));
 
         Question entity = new Question();
-        entity.setQuizStackId(questionDto.getQuizStackId());
+        entity.setQuiz(quiz);
         entity.setText(questionDto.getText());
 
         Question saved = questionRepository.save(entity);
@@ -43,11 +48,10 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public List<QuestionDto> getQuestionsByQuizStackId(Long quizStackId) {
-        // Можна переконатись, що QuizStack існує, якщо потрібно
-        quizStackRepository.findById(quizStackId)
-                .orElseThrow(() -> new RuntimeException("QuizStack not found"));
+        quizRepository.findById(quizStackId)
+                .orElseThrow(() -> new RuntimeException("Quiz not found"));
 
-        return questionRepository.findAllByQuizStackId(quizStackId)
+        return questionRepository.findAllByQuiz_Id(quizStackId)
                 .stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
@@ -58,11 +62,10 @@ public class QuestionServiceImpl implements QuestionService {
         Question entity = questionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Question not found"));
 
-        // Перевіряємо quizStack
-        quizStackRepository.findById(questionDto.getQuizStackId())
-                .orElseThrow(() -> new RuntimeException("QuizStack not found"));
+        Quiz quiz = quizRepository.findById(questionDto.getQuizStackId())
+                .orElseThrow(() -> new RuntimeException("Quiz not found"));
 
-        entity.setQuizStackId(questionDto.getQuizStackId());
+        entity.setQuiz(quiz);
         entity.setText(questionDto.getText());
 
         Question updated = questionRepository.save(entity);
@@ -79,8 +82,18 @@ public class QuestionServiceImpl implements QuestionService {
     private QuestionDto mapToDto(Question entity) {
         QuestionDto dto = new QuestionDto();
         dto.setId(entity.getId());
-        dto.setQuizStackId(entity.getQuizStackId());
+        dto.setQuizStackId(entity.getQuiz().getId());
         dto.setText(entity.getText());
+
+        List<OptionDto> optionsDto = entity.getOptions().stream().map(opt -> {
+            OptionDto oDto = new OptionDto();
+            oDto.setId(opt.getId());
+            oDto.setQuestionId(entity.getId());
+            oDto.setText(opt.getText());
+            return oDto;
+        }).collect(Collectors.toList());
+
+        dto.setOptions(optionsDto);
         return dto;
     }
 }

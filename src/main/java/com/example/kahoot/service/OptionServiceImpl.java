@@ -1,6 +1,11 @@
 package com.example.kahoot.service;
 
 import com.example.kahoot.dto.OptionDto;
+import com.example.kahoot.interfaces.OptionService;
+import com.example.kahoot.model.Option;
+import com.example.kahoot.model.Question;
+import com.example.kahoot.repository.OptionRepository;
+import com.example.kahoot.repository.QuestionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,12 +26,11 @@ public class OptionServiceImpl implements OptionService {
 
     @Override
     public OptionDto createOption(OptionDto optionDto) {
-        // Перевіряємо, чи існує Question
-        questionRepository.findById(optionDto.getQuestionId())
+        Question question = questionRepository.findById(optionDto.getQuestionId())
                 .orElseThrow(() -> new RuntimeException("Question not found"));
 
         Option entity = new Option();
-        entity.setQuestionId(optionDto.getQuestionId());
+        entity.setQuestion(question);
         entity.setText(optionDto.getText());
 
         Option saved = optionRepository.save(entity);
@@ -42,11 +46,10 @@ public class OptionServiceImpl implements OptionService {
 
     @Override
     public List<OptionDto> getOptionsByQuestionId(Long questionId) {
-        // Перевірка існування питання
         questionRepository.findById(questionId)
                 .orElseThrow(() -> new RuntimeException("Question not found"));
 
-        return optionRepository.findAllByQuestionId(questionId)
+        return optionRepository.findAllByQuestion_Id(questionId)
                 .stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
@@ -57,10 +60,10 @@ public class OptionServiceImpl implements OptionService {
         Option entity = optionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Option not found"));
 
-        questionRepository.findById(optionDto.getQuestionId())
+        Question question = questionRepository.findById(optionDto.getQuestionId())
                 .orElseThrow(() -> new RuntimeException("Question not found"));
 
-        entity.setQuestionId(optionDto.getQuestionId());
+        entity.setQuestion(question);
         entity.setText(optionDto.getText());
 
         Option updated = optionRepository.save(entity);
@@ -77,7 +80,7 @@ public class OptionServiceImpl implements OptionService {
     private OptionDto mapToDto(Option entity) {
         OptionDto dto = new OptionDto();
         dto.setId(entity.getId());
-        dto.setQuestionId(entity.getQuestionId());
+        dto.setQuestionId(entity.getQuestion().getId());
         dto.setText(entity.getText());
         return dto;
     }

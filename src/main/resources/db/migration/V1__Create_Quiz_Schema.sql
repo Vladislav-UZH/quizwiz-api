@@ -6,19 +6,20 @@ CREATE TABLE users (
 );
 
 -- Створення таблиці quiz_stack
-CREATE TABLE quiz_stack (
-                            id SERIAL PRIMARY KEY,
-                            name VARCHAR(255) NOT NULL
+-- Створення таблиці quiz
+CREATE TABLE quiz (
+                      id SERIAL PRIMARY KEY,
+                      title VARCHAR(255) NOT NULL
 );
 
 -- Створення таблиці question
--- Кожне питання прив’язане до конкретного quiz_stack через quiz_stack_id
+-- Кожне питання прив’язане до конкретного quiz через quiz_id
 CREATE TABLE question (
                           id SERIAL PRIMARY KEY,
-                          quiz_stack_id INTEGER NOT NULL,
+                          quiz_id INTEGER NOT NULL,
                           text VARCHAR(255) NOT NULL,
-                          CONSTRAINT fk_question_quiz_stack FOREIGN KEY (quiz_stack_id)
-                              REFERENCES quiz_stack (id)
+                          CONSTRAINT fk_question_quiz FOREIGN KEY (quiz_id)
+                              REFERENCES quiz (id)
                               ON DELETE CASCADE
 );
 
