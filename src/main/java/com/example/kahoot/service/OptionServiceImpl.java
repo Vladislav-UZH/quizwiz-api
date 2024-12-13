@@ -32,6 +32,7 @@ public class OptionServiceImpl implements OptionService {
         Option entity = new Option();
         entity.setQuestion(question);
         entity.setText(optionDto.getText());
+        entity.setCorrect(optionDto.isCorrect()); // встановлюємо значення
 
         Option saved = optionRepository.save(entity);
         return mapToDto(saved);
@@ -65,6 +66,7 @@ public class OptionServiceImpl implements OptionService {
 
         entity.setQuestion(question);
         entity.setText(optionDto.getText());
+        entity.setCorrect(optionDto.isCorrect());
 
         Option updated = optionRepository.save(entity);
         return mapToDto(updated);
@@ -82,6 +84,7 @@ public class OptionServiceImpl implements OptionService {
         dto.setId(entity.getId());
         dto.setQuestionId(entity.getQuestion().getId());
         dto.setText(entity.getText());
+        dto.setCorrect(entity.isCorrect()); // мапимо значення
         return dto;
     }
 }

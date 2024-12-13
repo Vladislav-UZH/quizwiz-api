@@ -26,10 +26,11 @@ CREATE TABLE question (
 -- Створення таблиці options
 -- Кожен варіант відповіді прив’язаний до питання через question_id
 CREATE TABLE options (
-    id SERIAL PRIMARY KEY,
-    question_id INTEGER NOT NULL,
-    text VARCHAR(255) NOT NULL,
-    CONSTRAINT fk_options_question FOREIGN KEY (question_id)
-        REFERENCES question (id)
-        ON DELETE CASCADE
+                         id SERIAL PRIMARY KEY,
+                         question_id INTEGER NOT NULL,
+                         text VARCHAR(255) NOT NULL,
+                         is_correct BOOLEAN NOT NULL DEFAULT false,
+                         CONSTRAINT fk_options_question FOREIGN KEY (question_id)
+                             REFERENCES question (id)
+                             ON DELETE CASCADE
 );

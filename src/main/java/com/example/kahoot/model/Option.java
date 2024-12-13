@@ -19,4 +19,7 @@ public class Option {
     @ManyToOne
     @JoinColumn(name = "question_id", nullable = false)
     private Question question;
+
+    @Column(name = "is_correct", nullable = false)
+    private boolean isCorrect = false; // За замовчуванням false
 }
