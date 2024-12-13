@@ -5,20 +5,31 @@ CREATE TABLE users (
     role VARCHAR(20) NOT NULL
 );
 
-CREATE TABLE quizzes (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(100) NOT NULL
+-- Створення таблиці quiz_stack
+-- Створення таблиці quiz
+CREATE TABLE quiz (
+                      id SERIAL PRIMARY KEY,
+                      title VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE questions (
-    id SERIAL PRIMARY KEY,
-    text VARCHAR(255) NOT NULL,
-    quiz_id BIGINT REFERENCES quizzes(id) ON DELETE CASCADE
+-- Створення таблиці question
+-- Кожне питання прив’язане до конкретного quiz через quiz_id
+CREATE TABLE question (
+                          id SERIAL PRIMARY KEY,
+                          quiz_id INTEGER NOT NULL,
+                          text VARCHAR(255) NOT NULL,
+                          CONSTRAINT fk_question_quiz FOREIGN KEY (quiz_id)
+                              REFERENCES quiz (id)
+                              ON DELETE CASCADE
 );
 
-CREATE TABLE answers (
-    id SERIAL PRIMARY KEY,
-    text VARCHAR(255) NOT NULL,
-    is_correct BOOLEAN NOT NULL,
-    question_id BIGINT REFERENCES questions(id) ON DELETE CASCADE
+-- Створення таблиці options
+-- Кожен варіант відповіді прив’язаний до питання через question_id
+CREATE TABLE options (
+                         id SERIAL PRIMARY KEY,
+                         question_id INTEGER NOT NULL,
+                         text VARCHAR(255) NOT NULL,
+                         CONSTRAINT fk_options_question FOREIGN KEY (question_id)
+                             REFERENCES question (id)
+                             ON DELETE CASCADE
 );

@@ -41,7 +41,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login", "/auth/register", "/auth/refresh").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/ws/**").permitAll() // Дозволити з'єднання WebSocket
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/api/quizzes/**").permitAll()
+                        .requestMatchers("/api/questions/**").permitAll()     // Дозволяємо доступ до запитань без аутентифікації
+                        .requestMatchers("/api/options/**").permitAll()       // Дозволяємо доступ до опцій без аутентифікації
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

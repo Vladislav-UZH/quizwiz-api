@@ -34,6 +34,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         System.out.println("JwtAuthenticationFilter is called for URI: " + request.getRequestURI());
 
+        String path = request.getRequestURI();
+
+        // Якщо запит стосується публічних ендпойнтів, пропускаємо без перевірки токена
+        if (path.startsWith("/api/quizzes") || path.startsWith("/api/questions") || path.startsWith("/api/options")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
             String jwt = getJwtFromRequest(request);
 
@@ -53,7 +61,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 System.out.println("No JWT Token found in request");
             }
 
-
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt) &&
                     tokenProvider.isTokenOfType(jwt, "access")) {
 
@@ -68,8 +75,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception ex) {
-            // Логування або обробка виключень
-            ex.printStackTrace(); // Додайте логування помилок для діагностики
+            // Логування або інша обробка помилок
+            ex.printStackTrace();
         }
 
         filterChain.doFilter(request, response);

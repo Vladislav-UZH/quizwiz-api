@@ -1,38 +1,48 @@
 package com.example.kahoot.controller;
 
-import com.example.kahoot.dto.QuizDTO;
-import com.example.kahoot.service.QuizService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.kahoot.dto.QuizDto;
+import com.example.kahoot.interfaces.QuizService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import java.util.stream.Collectors;
 
-// QuizController
 @RestController
-@RequestMapping("/quizzes")
+@RequestMapping("/api/quizzes")
 public class QuizController {
 
-    @Autowired
-    private QuizService quizService;
-    private static final Logger logger = LoggerFactory.getLogger(QuizController.class);
+    private final QuizService quizService;
+
+    public QuizController(QuizService quizService) {
+        this.quizService = quizService;
+    }
+
+    @PostMapping
+    public ResponseEntity<QuizDto> createQuiz(@RequestBody QuizDto quizDto) {
+        QuizDto createdQuiz = quizService.createQuiz(quizDto);
+        return ResponseEntity.ok(createdQuiz); // Повертає статус 200 та DTO
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<QuizDto> getQuizById(@PathVariable Long id) {
+        QuizDto quiz = quizService.getQuizById(id);
+        return ResponseEntity.ok(quiz); // Повертає статус 200 та DTO
+    }
 
     @GetMapping
-    public ResponseEntity<List<QuizDTO>> getAllQuizzes() {
-        logger.info("Fetching all quizzes");
-        List<QuizDTO> quizzes = quizService.getAllQuizzes().stream()
-                .map(quizService::mapToDTO)
-                .collect(Collectors.toList());
+    public ResponseEntity<List<QuizDto>> getAllQuizzes() {
+        List<QuizDto> quizzes = quizService.getAllQuizzes();
+        return ResponseEntity.ok(quizzes); // Повертає статус 200 та список DTO
+    }
 
-        if (quizzes.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
+    @PutMapping("/{id}")
+    public ResponseEntity<QuizDto> updateQuiz(@PathVariable Long id, @RequestBody QuizDto quizDto) {
+        QuizDto updatedQuiz = quizService.updateQuiz(id, quizDto);
+        return ResponseEntity.ok(updatedQuiz); // Повертає статус 200 та оновлений DTO
+    }
 
-        return ResponseEntity.ok(quizzes);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteQuiz(@PathVariable Long id) {
+        quizService.deleteQuiz(id);
+        return ResponseEntity.ok().build(); // Повертає статус 200 без тіла, але за потреби можна повертати і DTO
     }
 }
