@@ -4,8 +4,19 @@ public class OptionDto {
     private Long id;
     private Long questionId;
     private String text;
-    private boolean isCorrect; // нове поле
+    private boolean correct;
 
+    public OptionDto() {
+    }
+
+    public OptionDto(Long id, Long questionId, String text, boolean correct) {
+        this.id = id;
+        this.questionId = questionId;
+        this.text = text;
+        this.correct = correct;
+    }
+
+    // Гетери і сетери
     public Long getId() {
         return id;
     }
@@ -19,7 +30,7 @@ public class OptionDto {
     }
 
     public boolean isCorrect() {
-        return isCorrect;
+        return correct;
     }
 
     public void setId(Long id) {
@@ -35,6 +46,6 @@ public class OptionDto {
     }
 
     public void setCorrect(boolean correct) {
-        isCorrect = correct;
+        this.correct = correct;
     }
 }

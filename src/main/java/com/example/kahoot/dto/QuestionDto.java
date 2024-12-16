@@ -4,10 +4,21 @@ import java.util.List;
 
 public class QuestionDto {
     private Long id;
-    private Long quizStackId; // ID Quiz
+    private Long quizStackId;
     private String text;
     private List<OptionDto> options;
 
+    public QuestionDto() {
+    }
+
+    public QuestionDto(Long id, Long quizStackId, String text, List<OptionDto> options) {
+        this.id = id;
+        this.quizStackId = quizStackId;
+        this.text = text;
+        this.options = options;
+    }
+
+    // Гетери і сетери
     public Long getId() {
         return id;
     }
