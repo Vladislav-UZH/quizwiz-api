@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/quizzes/**").permitAll()
                         .requestMatchers("/api/questions/**").permitAll()     // Дозволяємо доступ до запитань без аутентифікації
                         .requestMatchers("/api/options/**").permitAll()       // Дозволяємо доступ до опцій без аутентифікації
+                        .requestMatchers("/api/quiz-sessions/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -7,6 +7,16 @@ public class QuizDto {
     private String title;
     private List<QuestionDto> questions;
 
+    public QuizDto() {
+    }
+
+    public QuizDto(Long id, String title, List<QuestionDto> questions) {
+        this.id = id;
+        this.title = title;
+        this.questions = questions;
+    }
+
+    // Гетери і сетери
     public Long getId() {
         return id;
     }

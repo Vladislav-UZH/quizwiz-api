@@ -1,14 +1,9 @@
 package com.example.kahoot.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "question")
 public class Question {
@@ -25,4 +20,37 @@ public class Question {
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Option> options = new ArrayList<>();
+
+    // Гетери і сетери
+    public Long getId() {
+        return id;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public Quiz getQuiz() {
+        return quiz;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public void setQuiz(Quiz quiz) {
+        this.quiz = quiz;
+    }
+
+    public List<Option> getOptions() {
+        return options;
+    }
+
+    public void setOptions(List<Option> options) {
+        this.options = options;
+    }
 }
