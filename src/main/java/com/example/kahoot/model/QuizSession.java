@@ -11,23 +11,21 @@ public class QuizSession {
     private Long id;
 
     @Column(name = "quiz_time", nullable = false)
-    private Integer quizTime; // загальний час, відведений на тест, у секундах чи іншій одиниці
+    private Integer quizTime;
 
     @ManyToOne
-    @JoinColumn(name = "quiz_stack_id", nullable = false)
-    private Quiz quiz; // посилання на Quiz
+    @JoinColumn(name = "quiz_id", nullable = false)
+    private Quiz quiz;
 
     @Column(name = "score", nullable = false)
-    private Integer score = 0; // дефолтне значення 0
+    private Integer score = 0;
 
-    @ManyToOne
-    @JoinColumn(name = "current_question_id")
-    private Question currentQuestion; // може бути null, якщо немає активного питання
+    @Column(name = "current_question_id", nullable = false)
+    private Integer currentQuestionId = -1;
 
-    @Column(name = "current_question_start_time")
-    private Integer currentQuestionStartTime; // час у мілісекундах з епохи, можна розглядати як long або int
+    @Column(name = "current_question_start_time", nullable = false)
+    private Integer currentQuestionStartTime = 0;
 
-    // Гетери і сетери
     public Long getId() {
         return id;
     }
@@ -56,12 +54,12 @@ public class QuizSession {
         this.score = score;
     }
 
-    public Question getCurrentQuestion() {
-        return currentQuestion;
+    public Integer getCurrentQuestionId() {
+        return currentQuestionId;
     }
 
-    public void setCurrentQuestion(Question currentQuestion) {
-        this.currentQuestion = currentQuestion;
+    public void setCurrentQuestionId(Integer currentQuestionId) {
+        this.currentQuestionId = currentQuestionId;
     }
 
     public Integer getCurrentQuestionStartTime() {

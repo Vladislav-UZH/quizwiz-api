@@ -2,12 +2,12 @@ package com.example.kahoot.interfaces;
 
 import com.example.kahoot.dto.QuizSessionDto;
 
-import java.util.List;
-
 public interface QuizSessionService {
-    QuizSessionDto createQuizSession(QuizSessionDto quizSessionDto);
+    QuizSessionDto createRoom(Integer quizTime, Long quizId);
+    QuizSessionDto questionStart(Long id, Integer currentQuestionId, Integer currentQuestionStartTime);
+    Integer questionEnd(Long id, Integer currentQuestionId, Integer finishTime, boolean correct);
+
     QuizSessionDto getQuizSessionById(Long id);
-    List<QuizSessionDto> getAllQuizSessions();
-    QuizSessionDto updateQuizSession(Long id, QuizSessionDto quizSessionDto);
-    void deleteQuizSession(Long id);
+    // Якщо потрібно, можна залишити інші CRUD методи, але з умови не зрозуміло, чи потрібні вони:
+    // Виходячи з вимог, зосередимось на нових методах.
 }

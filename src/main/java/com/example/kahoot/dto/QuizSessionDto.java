@@ -1,18 +1,17 @@
 package com.example.kahoot.dto;
 
 public class QuizSessionDto {
-
     private Long id;
     private Integer quizTime;
     private Long quizId;
     private Integer score;
-    private Long currentQuestionId;
+    private Integer currentQuestionId;
     private Integer currentQuestionStartTime;
 
     public QuizSessionDto() {
     }
 
-    public QuizSessionDto(Long id, Integer quizTime, Long quizId, Integer score, Long currentQuestionId, Integer currentQuestionStartTime) {
+    public QuizSessionDto(Long id, Integer quizTime, Long quizId, Integer score, Integer currentQuestionId, Integer currentQuestionStartTime) {
         this.id = id;
         this.quizTime = quizTime;
         this.quizId = quizId;
@@ -21,7 +20,6 @@ public class QuizSessionDto {
         this.currentQuestionStartTime = currentQuestionStartTime;
     }
 
-    // Гетери і сетери
     public Long getId() {
         return id;
     }
@@ -38,7 +36,7 @@ public class QuizSessionDto {
         return score;
     }
 
-    public Long getCurrentQuestionId() {
+    public Integer getCurrentQuestionId() {
         return currentQuestionId;
     }
 
@@ -62,7 +60,7 @@ public class QuizSessionDto {
         this.score = score;
     }
 
-    public void setCurrentQuestionId(Long currentQuestionId) {
+    public void setCurrentQuestionId(Integer currentQuestionId) {
         this.currentQuestionId = currentQuestionId;
     }
 

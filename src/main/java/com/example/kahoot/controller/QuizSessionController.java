@@ -1,11 +1,12 @@
 package com.example.kahoot.controller;
 
-import com.example.kahoot.dto.QuizSessionDto;
+import com.example.kahoot.dto.*;
+import com.example.kahoot.dto.CreateRoomRequest;
+import com.example.kahoot.dto.QuestionEndRequest;
+import com.example.kahoot.dto.QuestionStartRequest;
 import com.example.kahoot.interfaces.QuizSessionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/quiz-sessions")
@@ -17,37 +18,38 @@ public class QuizSessionController {
         this.quizSessionService = quizSessionService;
     }
 
-    @PostMapping
-    public ResponseEntity<QuizSessionDto> createQuizSession(@RequestBody QuizSessionDto quizSessionDto) {
-        QuizSessionDto created = quizSessionService.createQuizSession(quizSessionDto);
-        return ResponseEntity.ok(created);
+    // createRoom - тепер приймає дані з тіла JSON у форматі CreateRoomRequest
+    @PostMapping("/create-room")
+    public ResponseEntity<QuizSessionDto> createRoom(@RequestBody CreateRoomRequest request) {
+        QuizSessionDto dto = quizSessionService.createRoom(request.getQuizTime(), request.getQuizId());
+        return ResponseEntity.ok(dto);
+    }
+
+    // questionStart - тепер приймає дані з тіла JSON у форматі QuestionStartRequest
+    @PostMapping("/question-start")
+    public ResponseEntity<QuizSessionDto> questionStart(@RequestBody QuestionStartRequest request) {
+        QuizSessionDto dto = quizSessionService.questionStart(
+                request.getId(),
+                request.getCurrentQuestionId(),
+                request.getCurrentQuestionStartTime()
+        );
+        return ResponseEntity.ok(dto);
+    }
+
+    // questionEnd - приймає дані з тіла JSON у форматі QuestionEndRequest
+    @PostMapping("/question-end")
+    public ResponseEntity<Integer> questionEnd(@RequestBody QuestionEndRequest request) {
+        int increment = quizSessionService.questionEnd(
+                request.getId(),
+                request.getCurrentQuestionId(),
+                request.getFinish_time(),
+                request.isCorrect()
+        );
+        return ResponseEntity.ok(increment);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<QuizSessionDto> getQuizSessionById(@PathVariable Long id) {
-        QuizSessionDto session = quizSessionService.getQuizSessionById(id);
-        return ResponseEntity.ok(session);
-    }
-
-    @GetMapping
-    public ResponseEntity<List<QuizSessionDto>> getAllQuizSessions() {
-        List<QuizSessionDto> sessions = quizSessionService.getAllQuizSessions();
-        return ResponseEntity.ok(sessions);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<QuizSessionDto> updateQuizSession(@PathVariable Long id, @RequestBody QuizSessionDto quizSessionDto) {
-        QuizSessionDto updated = quizSessionService.updateQuizSession(id, quizSessionDto);
-        return ResponseEntity.ok(updated);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<QuizSessionDto> deleteQuizSession(@PathVariable Long id) {
-        // Отримаємо DTO до видалення
-        QuizSessionDto sessionBeforeDelete = quizSessionService.getQuizSessionById(id);
-        // Виконаємо видалення
-        quizSessionService.deleteQuizSession(id);
-        // Повертаємо DTO того, що було видалено
-        return ResponseEntity.ok(sessionBeforeDelete);
+    public ResponseEntity<QuizSessionDto> getQuizSession(@PathVariable Long id) {
+        return ResponseEntity.ok(quizSessionService.getQuizSessionById(id));
     }
 }

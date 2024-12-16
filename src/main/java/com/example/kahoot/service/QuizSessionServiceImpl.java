@@ -3,16 +3,11 @@ package com.example.kahoot.service;
 import com.example.kahoot.dto.QuizSessionDto;
 import com.example.kahoot.interfaces.QuizSessionService;
 import com.example.kahoot.model.Quiz;
-import com.example.kahoot.model.Question;
 import com.example.kahoot.model.QuizSession;
-import com.example.kahoot.repository.QuestionRepository;
 import com.example.kahoot.repository.QuizRepository;
 import com.example.kahoot.repository.QuizSessionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -20,36 +15,70 @@ public class QuizSessionServiceImpl implements QuizSessionService {
 
     private final QuizSessionRepository quizSessionRepository;
     private final QuizRepository quizRepository;
-    private final QuestionRepository questionRepository;
 
-    public QuizSessionServiceImpl(QuizSessionRepository quizSessionRepository,
-                                  QuizRepository quizRepository,
-                                  QuestionRepository questionRepository) {
+    public QuizSessionServiceImpl(QuizSessionRepository quizSessionRepository, QuizRepository quizRepository) {
         this.quizSessionRepository = quizSessionRepository;
         this.quizRepository = quizRepository;
-        this.questionRepository = questionRepository;
     }
 
     @Override
-    public QuizSessionDto createQuizSession(QuizSessionDto quizSessionDto) {
-        Quiz quiz = quizRepository.findById(quizSessionDto.getQuizId())
+    public QuizSessionDto createRoom(Integer quizTime, Long quizId) {
+        Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new RuntimeException("Quiz not found"));
 
         QuizSession session = new QuizSession();
-        session.setQuizTime(quizSessionDto.getQuizTime());
+        session.setQuizTime(quizTime);
         session.setQuiz(quiz);
-        session.setScore(quizSessionDto.getScore() != null ? quizSessionDto.getScore() : 0);
-
-        if (quizSessionDto.getCurrentQuestionId() != null) {
-            Question question = questionRepository.findById(quizSessionDto.getCurrentQuestionId())
-                    .orElseThrow(() -> new RuntimeException("Question not found"));
-            session.setCurrentQuestion(question);
-        }
-
-        session.setCurrentQuestionStartTime(quizSessionDto.getCurrentQuestionStartTime());
+        session.setScore(0);
+        session.setCurrentQuestionId(-1);
+        session.setCurrentQuestionStartTime(0);
 
         QuizSession saved = quizSessionRepository.save(session);
         return mapToDto(saved);
+    }
+
+    @Override
+    public QuizSessionDto questionStart(Long id, Integer currentQuestionId, Integer currentQuestionStartTime) {
+        QuizSession session = quizSessionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("QuizSession not found"));
+        session.setCurrentQuestionId(currentQuestionId);
+        session.setCurrentQuestionStartTime(currentQuestionStartTime);
+        QuizSession updated = quizSessionRepository.save(session);
+        return mapToDto(updated);
+    }
+
+    @Override
+    public Integer questionEnd(Long id, Integer currentQuestionId, Integer finishTime, boolean correct) {
+        QuizSession session = quizSessionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("QuizSession not found"));
+
+        // Перевіримо, що currentQuestionId збігається з тим, що вказано
+        if (!session.getCurrentQuestionId().equals(currentQuestionId)) {
+            throw new RuntimeException("Current question does not match session's current question.");
+        }
+
+        Quiz quiz = session.getQuiz();
+        int n = quiz.getQuestions().size(); // Кількість питань у квізі
+        int quizTime = session.getQuizTime();
+        int currentQuestionStartTime = session.getCurrentQuestionStartTime();
+
+        // ФОРМУЛА:
+        // (1 - ((finish_time - currentQuestionStartTime) / (quizTime / n))) * 500 + 500
+        // Якщо correct = true, застосовуємо формулу, інакше increment = 0.
+
+        int increment = 0;
+        if (correct) {
+            double numerator = (finishTime - currentQuestionStartTime);
+            double denominator = (double)quizTime / n;
+            double ratio = numerator / denominator;
+            double value = (1 - ratio) * 500 + 500;
+            increment = (int)Math.round(value);
+        }
+
+        session.setScore(session.getScore() + increment);
+        quizSessionRepository.save(session);
+
+        return increment; // Повертаємо тільки increment
     }
 
     @Override
@@ -59,54 +88,14 @@ public class QuizSessionServiceImpl implements QuizSessionService {
         return mapToDto(session);
     }
 
-    @Override
-    public List<QuizSessionDto> getAllQuizSessions() {
-        return quizSessionRepository.findAll().stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public QuizSessionDto updateQuizSession(Long id, QuizSessionDto quizSessionDto) {
-        QuizSession session = quizSessionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("QuizSession not found"));
-
-        Quiz quiz = quizRepository.findById(quizSessionDto.getQuizId())
-                .orElseThrow(() -> new RuntimeException("Quiz not found"));
-
-        session.setQuizTime(quizSessionDto.getQuizTime());
-        session.setQuiz(quiz);
-        session.setScore(quizSessionDto.getScore() != null ? quizSessionDto.getScore() : session.getScore());
-
-        if (quizSessionDto.getCurrentQuestionId() != null) {
-            Question question = questionRepository.findById(quizSessionDto.getCurrentQuestionId())
-                    .orElseThrow(() -> new RuntimeException("Question not found"));
-            session.setCurrentQuestion(question);
-        } else {
-            session.setCurrentQuestion(null);
-        }
-
-        session.setCurrentQuestionStartTime(quizSessionDto.getCurrentQuestionStartTime());
-
-        QuizSession updated = quizSessionRepository.save(session);
-        return mapToDto(updated);
-    }
-
-    @Override
-    public void deleteQuizSession(Long id) {
-        QuizSession session = quizSessionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("QuizSession not found"));
-        quizSessionRepository.delete(session);
-    }
-
     private QuizSessionDto mapToDto(QuizSession entity) {
-        QuizSessionDto dto = new QuizSessionDto();
-        dto.setId(entity.getId());
-        dto.setQuizTime(entity.getQuizTime());
-        dto.setQuizId(entity.getQuiz().getId());
-        dto.setScore(entity.getScore());
-        dto.setCurrentQuestionId(entity.getCurrentQuestion() != null ? entity.getCurrentQuestion().getId() : null);
-        dto.setCurrentQuestionStartTime(entity.getCurrentQuestionStartTime());
-        return dto;
+        return new QuizSessionDto(
+                entity.getId(),
+                entity.getQuizTime(),
+                entity.getQuiz().getId(),
+                entity.getScore(),
+                entity.getCurrentQuestionId(),
+                entity.getCurrentQuestionStartTime()
+        );
     }
 }

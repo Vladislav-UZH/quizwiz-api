@@ -37,7 +37,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         // Якщо запит стосується публічних ендпойнтів, пропускаємо без перевірки токена
-        if (path.startsWith("/api/quizzes") || path.startsWith("/api/questions") || path.startsWith("/api/options")) {
+//        if (path.startsWith("/api/quizzes") || path.startsWith("/api/questions") || path.startsWith("/api/options")) {
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
+        if (path.startsWith("/api/quizzes")
+                || path.startsWith("/api/questions")
+                || path.startsWith("/api/options")
+                || path.equals("/api/quiz-sessions/create-room")
+                || path.equals("/api/quiz-sessions/question-start")
+                || path.equals("/api/quiz-sessions/question-end")) {
             filterChain.doFilter(request, response);
             return;
         }
