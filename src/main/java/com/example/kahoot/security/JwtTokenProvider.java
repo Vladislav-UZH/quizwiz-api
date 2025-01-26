@@ -24,11 +24,13 @@ public class JwtTokenProvider {
     private TokenRepository tokenRepository;
 
     public String generateToken(User user, String tokenType) {
-        long expirationTime = tokenType.equals("access") ? jwtExpirationInMillis : jwtExpirationInMillis * 24; // Refresh токен діє довше
+        long expirationTime = tokenType.equals("access")
+                ? jwtExpirationInMillis
+                : jwtExpirationInMillis * 24; // Refresh-токен діє довше
         Date issuedAt = new Date();
         Date expiresAt = new Date(issuedAt.getTime() + expirationTime);
 
-        // Генерація унікального токену для кожного типу
+        // Генерація унікального токену
         String tokenValue = Jwts.builder()
                 .setSubject(user.getId().toString())
                 .setIssuedAt(issuedAt)
@@ -38,7 +40,8 @@ public class JwtTokenProvider {
                 .compact();
 
         // Видалення існуючого токена такого ж типу
-        tokenRepository.findByUserAndTokenType(user, tokenType).ifPresent(tokenRepository::delete);
+        tokenRepository.findByUserAndTokenType(user, tokenType)
+                .ifPresent(tokenRepository::delete);
 
         // Збереження нового токена
         Token newToken = new Token();
@@ -59,7 +62,9 @@ public class JwtTokenProvider {
             Optional<Token> storedToken = tokenRepository.findByTokenValue(tokenValue);
             boolean tokenValid = storedToken.isPresent() && !isTokenExpired(storedToken.get());
             System.out.println("Token exists in database: " + storedToken.isPresent());
-            System.out.println("Token is expired: " + isTokenExpired(storedToken.get()));
+            if (storedToken.isPresent()) {
+                System.out.println("Token is expired: " + isTokenExpired(storedToken.get()));
+            }
             return tokenValid;
         } catch (JwtException | IllegalArgumentException e) {
             System.out.println("Token validation failed: " + e.getMessage());
@@ -98,13 +103,17 @@ public class JwtTokenProvider {
     }
 
     public Long getUserIdFromToken(String tokenValue) {
-        Claims claims = Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(tokenValue).getBody();
+        Claims claims = Jwts.parser()
+                .setSigningKey(jwtSecret)
+                .parseClaimsJws(tokenValue)
+                .getBody();
         return Long.parseLong(claims.getSubject());
     }
 
     public boolean isTokenOfType(String tokenValue, String tokenType) {
         Optional<Token> storedToken = tokenRepository.findByTokenValue(tokenValue);
-        return storedToken.isPresent() && storedToken.get().getTokenType().equalsIgnoreCase(tokenType);
+        return storedToken.isPresent()
+                && storedToken.get().getTokenType().equalsIgnoreCase(tokenType);
     }
 
     public void revokeToken(String tokenValue) {

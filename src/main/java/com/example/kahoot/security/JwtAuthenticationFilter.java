@@ -4,15 +4,14 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import com.example.kahoot.model.User;
+import com.example.kahoot.service.UserService;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import com.example.kahoot.model.User;
-import com.example.kahoot.service.UserService;
 
 import java.io.IOException;
 
@@ -36,11 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // Якщо запит стосується публічних ендпойнтів, пропускаємо без перевірки токена
-//        if (path.startsWith("/api/quizzes") || path.startsWith("/api/questions") || path.startsWith("/api/options")) {
-//            filterChain.doFilter(request, response);
-//            return;
-//        }
+        // Пропускаємо без токена для деяких публічних ендпойнтів
         if (path.startsWith("/api/quizzes")
                 || path.startsWith("/api/questions")
                 || path.startsWith("/api/options")
@@ -70,21 +65,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 System.out.println("No JWT Token found in request");
             }
 
-            if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt) &&
-                    tokenProvider.isTokenOfType(jwt, "access")) {
+            if (StringUtils.hasText(jwt)
+                    && tokenProvider.validateToken(jwt)
+                    && tokenProvider.isTokenOfType(jwt, "access")) {
 
                 Long userId = tokenProvider.getUserIdFromToken(jwt);
                 User user = userService.getUserById(userId);
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        user, null, user.getAuthorities());
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                user, null, user.getAuthorities()
+                        );
 
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                authentication.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request)
+                );
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception ex) {
-            // Логування або інша обробка помилок
+            // Логіка обробки винятку
             ex.printStackTrace();
         }
 
