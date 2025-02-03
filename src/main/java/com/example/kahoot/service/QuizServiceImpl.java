@@ -1,5 +1,6 @@
 package com.example.kahoot.service;
 
+import com.example.kahoot.dto.OptionDto;
 import com.example.kahoot.dto.QuestionDto;
 import com.example.kahoot.dto.QuizDto;
 import com.example.kahoot.interfaces.QuizService;
@@ -61,20 +62,42 @@ public class QuizServiceImpl implements QuizService {
     }
 
     private QuizDto mapToDto(Quiz quiz) {
+        // Створюємо DTO для самого Quiz
         QuizDto dto = new QuizDto();
         dto.setId(quiz.getId());
         dto.setTitle(quiz.getTitle());
+
+        // Мапимо список питань
         List<QuestionDto> questionDtos = quiz.getQuestions().stream()
                 .map(q -> {
+                    // Створюємо DTO для одного Question
                     QuestionDto qDto = new QuestionDto();
                     qDto.setId(q.getId());
+                    // Зверніть увагу: поле в DTO називається quizStackId,
+                    //  але фактично ми сюди кладемо quiz.getId().
+                    //  Якщо це дійсно коректно, залишаємо як є.
                     qDto.setQuizStackId(quiz.getId());
                     qDto.setText(q.getText());
-                    // Можна також додати маппінг options, якщо потрібно
+
+                    // Тепер МАПІНГ OPTIONS для кожного question
+                    List<OptionDto> optionDtos = q.getOptions().stream()
+                            .map(opt -> {
+                                OptionDto oDto = new OptionDto();
+                                oDto.setId(opt.getId());
+                                oDto.setQuestionId(q.getId());
+                                oDto.setText(opt.getText());
+                                oDto.setCorrect(opt.isCorrect());
+                                return oDto;
+                            })
+                            .collect(Collectors.toList());
+
+                    qDto.setOptions(optionDtos);
                     return qDto;
                 })
                 .collect(Collectors.toList());
+
         dto.setQuestions(questionDtos);
         return dto;
     }
+
 }
