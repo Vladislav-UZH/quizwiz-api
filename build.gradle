@@ -23,52 +23,80 @@ repositories {
 	mavenCentral()
 }
 
+// Версії, які згадуєте для модуля Spring Modulith, Spring Cache тощо
 ext {
 	set('springModulithVersion', "1.2.4")
 	set("springCacheVersion", "3.3.0")
 }
 
 dependencies {
+	// ========== СТАРТЕРИ SPRING BOOT ==========
+	// Базовий стартер (core + logging)
 	implementation 'org.springframework.boot:spring-boot-starter'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+	// Стартер для Web (Tomcat/Embedded Container, Jackson)
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
+	// Стартер для JPA (Hibernate)
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+	// Стартер для WebSocket (якщо вам потрібен функционал WS)
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
-	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-
-	compileOnly 'org.projectlombok:lombok'
-
-	implementation 'org.postgresql:postgresql:42.6.0'
-
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	implementation 'org.flywaydb:flyway-core'
-	implementation "org.flywaydb:flyway-database-postgresql"
-	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0")
+	// Стартер для Security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.security:spring-security-core'
 	implementation 'org.springframework.security:spring-security-config'
 
-	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	// ========== ЛОГІНГ ==========
+	// Явно додаємо jboss-logging, щоб Hibernate не «падав»
+	implementation 'org.jboss.logging:jboss-logging:3.4.1.Final'
 
+	// ========== БАЗА ДАНИХ, FLYWAY ==========
+	// PostgreSQL драйвер (як runtime / implementation)
+	// Версію можна лишити останню або дати без версії (Spring Boot BOM підбере)
+	implementation 'org.postgresql:postgresql:42.6.0'
+
+	// Flyway для виконання міграцій (core + postgresql)
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-database-postgresql'
+
+	// ========== OpenAPI ==========
+	implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0"
+
+	// ========== JWT ==========
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
 	implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
 	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
-	implementation 'javax.servlet:javax.servlet-api:4.0.1'
-	testImplementation 'org.testcontainers:junit-jupiter'
-
-	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-
-	testImplementation 'org.springframework.security:spring-security-test'
-
-
+	// ========== КЕШУВАННЯ (якщо потрібно) ==========
+	// Використання spring-boot-starter-cache
 	implementation("org.springframework.boot:spring-boot-starter-cache:${springCacheVersion}")
 
+	// ========== JACKSON (зазвичай уже йде із starter'ами, але можна явно) ==========
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
 
+	// ========== СЕРВЛЕТ-API (якщо потрібно явно) ==========
+	// Часто також уже підтягується стартером web, та якщо Вам потрібно - лишаємо
+	implementation 'javax.servlet:javax.servlet-api:4.0.1'
+
+	// ========== LOMBOK (compileOnly + annotationProcessor) ==========
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// Анотації для @ConfigurationProperties (якщо використовуєте)
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+	// ========== ТЕСТИ ==========
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+
+	// Testcontainers для інтеграційних тестів (якщо потрібно)
+	testImplementation 'org.testcontainers:junit-jupiter'
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 }
 
+// Якщо Ви використовуєте Spring Modulith BOM:
 dependencyManagement {
 	imports {
 		mavenBom "org.springframework.modulith:spring-modulith-bom:${springModulithVersion}"
@@ -79,6 +107,7 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
+// Налаштування jar-файлу, якщо бажаєте специфічне ім'я
 bootJar {
 	archiveFileName = 'application.jar'
 }
