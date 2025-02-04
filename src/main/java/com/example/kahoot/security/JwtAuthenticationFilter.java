@@ -41,7 +41,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 || path.startsWith("/api/options")
                 || path.equals("/api/quiz-sessions/create-room")
                 || path.equals("/api/quiz-sessions/question-start")
-                || path.equals("/api/quiz-sessions/question-end")) {
+                || path.equals("/api/quiz-sessions/question-end")
+                // AUTH ROUTES
+                || path.equals("/auth/login")
+                || path.equals("/auth/register")
+                || path.equals("/auth/refresh")
+                ) {
             filterChain.doFilter(request, response);
             return;
         }
